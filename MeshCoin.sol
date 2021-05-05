@@ -2,8 +2,8 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts@3.2.0/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts@3.2.0/access/Ownable.sol";
 
 
 contract MeshCoin is ERC20, Ownable {
