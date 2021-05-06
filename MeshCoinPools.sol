@@ -6,14 +6,14 @@ import "@openzeppelin/contracts@3.2.0/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts@3.2.0/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts@3.2.0/math/SafeMath.sol";
 import "@openzeppelin/contracts@3.2.0/access/Ownable.sol";
-import "./MeshCoin.sol";
+import "./Meshcoin.sol";
 
 // Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once MeshCoin is sufficiently
+// will be transferred to a governance smart contract once Meshcoin is sufficiently
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
-contract MeshCoinPools is Ownable {
+contract MeshcoinPools is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -23,7 +23,7 @@ contract MeshCoinPools is Ownable {
         uint256 rewardDebt;     // Reward debt. See explanation below.
         uint256 rewardRemain;   // Remain rewards
 
-        // We do some fancy math here. Basically, any point in time, the amount of MeshCoins
+        // We do some fancy math here. Basically, any point in time, the amount of Meshcoins
         // entitled to a user but is pending to be distributed is:
         //
         //   pending reward = (user.amount * pool.accRewardPerShare) + user.rewardRemain - user.rewardDebt
@@ -38,15 +38,15 @@ contract MeshCoinPools is Ownable {
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken;             // Address of LP token contract.
-        uint256 allocPoint;         // How many allocation points assigned to this pool. MeshCoins to distribute per block.
-        uint256 lastRewardBlock;    // Last block number that MeshCoins distribution occurs.
-        uint256 accRewardPerShare;  // Accumulated MeshCoins per share, times 1e18. See below.
+        uint256 allocPoint;         // How many allocation points assigned to this pool. Meshcoins to distribute per block.
+        uint256 lastRewardBlock;    // Last block number that Meshcoins distribution occurs.
+        uint256 accRewardPerShare;  // Accumulated Meshcoins per share, times 1e18. See below.
         uint256 totalAmount;        // Total amount of current pool deposit.
         uint256 pooltype;           // pool type, 1 = Single ERC20 or 2 = LP Token or 3 = nft Pool
     }
 
-    // The MeshCoin!
-    MeshCoin public msc;
+    // The Meshcoin!
+    Meshcoin public msc;
     // Dev address.
     address public devaddr;
     // Operater address.
@@ -78,7 +78,7 @@ contract MeshCoinPools is Ownable {
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     constructor (
-        MeshCoin _msc,
+        Meshcoin _msc,
         address _devaddr,
         address _opeaddr,
         uint256 _rewardPerBlock,
@@ -128,7 +128,7 @@ contract MeshCoinPools is Ownable {
         rewardDistributionFactor = _rewardDistributionFactor;
     }
 
-    // Update the given pool's MeshCoin allocation point. Can only be called by the owner.
+    // Update the given pool's Meshcoin allocation point. Can only be called by the owner.
     function setAllocPoint(uint256 _pid, uint256 _allocPoint) external onlyOwner {
         massUpdatePools();
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
@@ -185,7 +185,7 @@ contract MeshCoinPools is Ownable {
         return reward.mul(80 ** _reductionCounter).div(100 ** _reductionCounter);
     }
 
-    // View function to see pending MeshCoins on frontend.
+    // View function to see pending Meshcoins on frontend.
     function pendingRewards(uint256 _pid, address _user) public view returns (uint256 value) {
         PoolInfo memory pool = poolInfo[_pid];
         UserInfo memory user = userInfo[_pid][_user];
@@ -243,7 +243,7 @@ contract MeshCoinPools is Ownable {
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to MasterChef for MeshCoin allocation.
+    // Deposit LP tokens to MasterChef for Meshcoin allocation.
     function deposit(uint256 _pid, uint256 _amount) external {
         updatePool(_pid);
         PoolInfo storage pool = poolInfo[_pid];
@@ -261,7 +261,7 @@ contract MeshCoinPools is Ownable {
         emit Deposit(msg.sender, _pid, _amount);
     }
 
-    // Withdraw LP tokens from StarPool.
+    // Withdraw LP tokens from MeshcoinPool.
     function withdraw(uint256 _pid, uint256 _amount) external {
         updatePool(_pid);
         PoolInfo storage pool = poolInfo[_pid];
@@ -305,7 +305,7 @@ contract MeshCoinPools is Ownable {
         emit EmergencyWithdraw(msg.sender, _pid, amount);
     }
 
-    // Safe MeshCoin transfer function, just in case if rounding error causes pool to not have enough MeshCoins.
+    // Safe Meshcoin transfer function, just in case if rounding error causes pool to not have enough Meshcoins.
     function safeMscTransfer(address _to, uint256 _amount) internal {
         uint256 mscBalance = msc.balanceOf(address(this));
         if (_amount > mscBalance) {
