@@ -15,8 +15,9 @@ contract Meshcoin is ERC20, Ownable {
         ) public ERC20('Meshcoin', 'MSC') {
 
         capmax =  _totalSupply;                       // MSC totaled 10 billion, 70% of which was mined after the public blockchain went live.
-        _mint(_premint, _totalSupply*1/10000);        // 1%% for pool premint
-        _mint(_investor, _totalSupply*300/10000);     // 300%% for foundation to vc investor, release weekly
+        _mint(_premint, _totalSupply*20/100/10000);   // 20%%% for pool premint
+        _mint(_investor, _totalSupply*3/100);         // 3% for foundation to vc investor, release weekly
+        _mint(address(0x0000000000000000000000000000000000000001), _totalSupply*70/100);     // 70% for future Meshcoin public chain mining
     }
 
     address public mscpools;
