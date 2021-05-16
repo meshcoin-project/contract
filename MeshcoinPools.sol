@@ -179,7 +179,7 @@ contract MeshcoinPools is Ownable {
         if (_reductionCounter == 0) {
             return reward;
         }else if (_reductionCounter >= maxReductionCount) {
-            return reward.mul(6).div(100);
+            return reward.mul(75).div(1000);
         }
         // _reductionCounter no more than maxReductionCount (12)
         return reward.mul(80 ** _reductionCounter).div(100 ** _reductionCounter);
