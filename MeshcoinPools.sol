@@ -84,6 +84,10 @@ contract MeshcoinPools is Ownable {
         uint256 _rewardPerBlock,
         uint256 _startBlock
     ) public {
+
+        require(_devaddr != address(0), "_devaddr address cannot be 0");
+        require(_opeaddr != address(0), "_opeaddr address cannot be 0");
+
         msc = _msc;
         devaddr = _devaddr;
         opeaddr = _opeaddr;
@@ -97,13 +101,24 @@ contract MeshcoinPools is Ownable {
         nextReductionBlock = _startBlock.add(reductionBlockPeriod);
     }
 
+    modifier validatePoolByPid(uint256 _pid) { 
+        require (_pid < poolInfo.length , "Pool does not exist") ;
+        _;
+    }
+
     function poolLength() external view returns (uint256) {
         return poolInfo.length;
     }
 
     // Add a new lp to the pool. Can only be called by the owner.
     // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
-    function add(uint256 _allocPoint, IERC20 _lpToken, uint256 _pooltype) public onlyOwner {
+    function add(uint256 _allocPoint, IERC20 _lpToken, uint256 _pooltype) external onlyOwner {
+
+        uint256 _len = poolInfo.length;
+        for(uint256 i = 0; i < _len; i++){
+            require(_lpToken != poolInfo[i].lpToken, "LPToken already exists");
+        }
+
         massUpdatePools();
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
@@ -129,14 +144,14 @@ contract MeshcoinPools is Ownable {
     }
 
     // Update the given pool's Meshcoin allocation point. Can only be called by the owner.
-    function setAllocPoint(uint256 _pid, uint256 _allocPoint) external onlyOwner {
+    function setAllocPoint(uint256 _pid, uint256 _allocPoint) external onlyOwner validatePoolByPid(_pid) {
         massUpdatePools();
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
         poolInfo[_pid].allocPoint = _allocPoint;
     }
 
     // Pooltype to set pool display type on frontend.
-    function setPoolType(uint256 _pid, uint256 _pooltype) external onlyOwner {
+    function setPoolType(uint256 _pid, uint256 _pooltype) external onlyOwner validatePoolByPid(_pid) {
         poolInfo[_pid].pooltype = _pooltype;
     }
 
@@ -186,7 +201,7 @@ contract MeshcoinPools is Ownable {
     }
 
     // View function to see pending Meshcoins on frontend.
-    function pendingRewards(uint256 _pid, address _user) public view returns (uint256 value) {
+    function pendingRewards(uint256 _pid, address _user) public validatePoolByPid(_pid) view returns (uint256 value) {
         PoolInfo memory pool = poolInfo[_pid];
         UserInfo memory user = userInfo[_pid][_user];
         value = totalRewards(pool, user).add(user.rewardRemain).sub(user.rewardDebt);
@@ -211,7 +226,7 @@ contract MeshcoinPools is Ownable {
     }
 
     // Update reward variables of the given pool to be up-to-date.
-    function updatePool(uint256 _pid) public {
+    function updatePool(uint256 _pid) public validatePoolByPid(_pid) {
         PoolInfo storage pool = poolInfo[_pid];
         if (block.number <= pool.lastRewardBlock) {
             return;
@@ -244,7 +259,7 @@ contract MeshcoinPools is Ownable {
     }
 
     // Deposit LP tokens to MasterChef for Meshcoin allocation.
-    function deposit(uint256 _pid, uint256 _amount) external {
+    function deposit(uint256 _pid, uint256 _amount) external validatePoolByPid(_pid) {
         updatePool(_pid);
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -262,13 +277,12 @@ contract MeshcoinPools is Ownable {
     }
 
     // Withdraw LP tokens from MeshcoinPool.
-    function withdraw(uint256 _pid, uint256 _amount) external {
+    function withdraw(uint256 _pid, uint256 _amount) external validatePoolByPid(_pid){
         updatePool(_pid);
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
         user.rewardRemain = pendingRewards(_pid, msg.sender);
-        user.rewardDebt = 0;
         if(_amount > 0) {
             user.amount = user.amount.sub(_amount);
             pool.totalAmount = pool.totalAmount.sub(_amount);
@@ -278,7 +292,7 @@ contract MeshcoinPools is Ownable {
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
-    function claimAll(uint256 _pid) external returns(uint256 value) {
+    function claimAll(uint256 _pid) external validatePoolByPid(_pid) returns(uint256 value){
         updatePool(_pid);
         value = pendingRewards(_pid, msg.sender);
         // require(value >= 0, "claim: not good");
@@ -286,20 +300,20 @@ contract MeshcoinPools is Ownable {
             PoolInfo storage pool = poolInfo[_pid];
             UserInfo storage user = userInfo[_pid][msg.sender];
             user.rewardRemain = 0;
-            safeMscTransfer(msg.sender, value);
             user.rewardDebt = totalRewards(pool, user);
+            safeMscTransfer(msg.sender, value);
         }
         emit Claim(msg.sender, _pid, value);
     }
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _pid) external {
+    function emergencyWithdraw(uint256 _pid) external validatePoolByPid(_pid){
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         uint256 amount = user.amount;
         user.amount = 0;
-        // user.rewardDebt = 0;
-        // user.rewardRemain = 0;
+        user.rewardDebt = 0;
+        user.rewardRemain = 0;
         pool.totalAmount = pool.totalAmount.sub(amount);
         pool.lpToken.safeTransfer(address(msg.sender), amount);
         emit EmergencyWithdraw(msg.sender, _pid, amount);
@@ -317,12 +331,14 @@ contract MeshcoinPools is Ownable {
 
     // Update dev address by the previous dev.
     function dev(address _devaddr) external {
+        require(_devaddr != address(0), "_devaddr address cannot be 0");
         require(msg.sender == devaddr, "dev: wut?");
         devaddr = _devaddr;
     }
     
     // Update ope address by the previous ope.
     function ope(address _opeaddr) external {
+        require(_opeaddr != address(0), "_devaddr address cannot be 0");
         require(msg.sender == opeaddr, "ope: wut?");
         opeaddr = _opeaddr;
     }
