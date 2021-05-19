@@ -268,9 +268,9 @@ contract MeshcoinPools is Ownable {
             // user.rewardDebt = 0;
         }
         if(_amount > 0) {
-            pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
             user.amount = user.amount.add(_amount);
             pool.totalAmount = pool.totalAmount.add(_amount);
+            pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
         }
         user.rewardDebt = totalRewards(pool, user);
         emit Deposit(msg.sender, _pid, _amount);

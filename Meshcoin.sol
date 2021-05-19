@@ -8,6 +8,8 @@ import "@openzeppelin/contracts@3.2.0/access/Ownable.sol";
 
 contract Meshcoin is ERC20, Ownable {
 
+    using SafeMath for uint256;
+
     constructor (
             uint256 _totalSupply,
             address _premint,
