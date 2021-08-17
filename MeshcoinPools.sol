@@ -249,9 +249,9 @@ contract MeshcoinPools is Ownable {
         uint256 blockReward = getBlocksReward(pool.lastRewardBlock, block.number);
         uint256 poolReward = blockReward.mul(pool.allocPoint).div(totalAllocPoint);
         if(poolReward > 0) {
-            // 1999%% for pools, 500%% for team and 200%% for business
-            msc.liquidityMiningMint(devaddr, poolReward.mul(500).div(1999));
-            msc.liquidityMiningMint(opeaddr, poolReward.mul(200).div(1999));
+            // 1998%% for pools, 500%% for team and 200%% for business
+            msc.liquidityMiningMint(devaddr, poolReward.mul(500).div(1998));
+            msc.liquidityMiningMint(opeaddr, poolReward.mul(200).div(1998));
             msc.liquidityMiningMint(address(this), poolReward);
         }
         pool.accRewardPerShare = pool.accRewardPerShare.add(poolReward.mul(1e18).div(pool.totalAmount));
